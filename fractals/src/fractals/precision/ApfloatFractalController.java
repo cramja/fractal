@@ -1,13 +1,20 @@
 package fractals.precision;
+import org.apfloat.Apfloat;
+
 import fractals.Direction;
 import fractals.FractalController;
 
 public class ApfloatFractalController implements FractalController {
+	private static final int precision = 100;
+	
+	
+	private ApfloatFractal fractal = new ApfloatFractal(
+			new ApfloatPoint(new Apfloat(-2,precision), new Apfloat(-2, precision)),
+			new ApfloatPoint(new Apfloat(2,precision), new Apfloat(2, precision)), 50, 50);
 	
 	@Override
 	public int[][] getImage() {
-		// TODO Auto-generated method stub
-		return null;
+		return fractal.getImage();
 	}
 
 	@Override

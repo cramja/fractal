@@ -13,6 +13,7 @@ import java.awt.image.DataBufferInt;
 import javax.swing.JFrame;
 
 import fractals.parallel.PFractalController;
+import fractals.precision.ApfloatFractalController;
 
 public class Screen extends Canvas implements Runnable {
 	private static final long serialVersionUID = 1L;
@@ -31,8 +32,8 @@ public class Screen extends Canvas implements Runnable {
 	private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer())
 			.getData();
 
-	private PFractalController fc = new PFractalController();
-	//private FractalController fc = new FractalController();
+	//private PFractalController fc = new PFractalController();
+	private FractalController fc = new ApfloatFractalController();
 	
 	public Screen() {
 		Dimension dim = new Dimension(width, height);

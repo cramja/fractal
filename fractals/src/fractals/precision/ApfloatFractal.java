@@ -5,14 +5,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import fractal.Fractal;
-import fractal.parallel.Point;
-import fractal.parallel.RenderTask;
+import org.apfloat.Apfloat;
+import org.apfloat.ApfloatMath;
+
+import fractals.Fractal;
+import fractals.parallel.Point;
+import fractals.parallel.RenderTask;
 
 public class ApfloatFractal implements Fractal{
+	private static final int precision =100; 
+	
 	protected static int threads = Runtime.getRuntime().availableProcessors()-1;
 	protected ExecutorService e = Executors.newFixedThreadPool(threads);
-	protected RenderTask[] tasks;
+	protected ApfloatRenderTask[] tasks;
 	protected Future<?>[] futures;
 	
 	private static final int iterations = 50;
@@ -31,7 +36,7 @@ public class ApfloatFractal implements Fractal{
 		image = new int[width][height];
 		
 		futures = new Future<?>[threads];
-		tasks = new RenderTask[threads];
+		tasks = new ApfloatRenderTask[threads];
 		createTasks();
 	}
 	
@@ -43,30 +48,47 @@ public class ApfloatFractal implements Fractal{
 	
 	// split into columns
 	private void createTasks(){
-		double dx = Math.abs(p1.x-p2.x)/threads;
-		Point tsize = new Point((int)(size.x/threads), size.y);
+		Apfloat apthreads = new Apfloat(threads, precision);
+		Apfloat dx = ApfloatMath.abs(apthreads.divide(p1.x.subtract(p2.x)));
+		//double dx = Math.abs(p1.x-p2.x)/threads;
+		
+		int twidth = width/threads;
+		int theight = height/threads;
+		//Point tsize = new Point((int)(size.x/threads), size.y);
 		for(int t = 0; t < threads-1; t++){
-			tasks[t] = new RenderTask( 
-					new Point(p1.x + dx*t,p1.y), 
-					new Point(p1.x + dx*(t+1), p2.y), 
-					tsize, iterations);
+			Apfloat tt = new Apfloat(t, precision);
+			Apfloat ttt = new Apfloat(t+1, precision);
+			ApfloatPoint b1 = new ApfloatPoint(p1.x.add(dx.multiply(tt)), p1.y); 
+			ApfloatPoint b2 = new ApfloatPoint(p1.x.add(dx.multiply(ttt)), p2.y); 
+			tasks[t] = new ApfloatRenderTask(
+					b1, b2, twidth,theight, iterations);
 		}
-		tasks[threads-1] = new RenderTask(
-				new Point(p1.x + dx * (threads-1), p1.y), 
-				new Point(p2.x, p2.y),new Point((int) (size.x-(tsize.x*(threads-1))), size.y),iterations);
+		Apfloat tt = new Apfloat(threads - 1, precision);
+		ApfloatPoint b1 = new ApfloatPoint(p1.x.add(dx.multiply(tt)), p1.y); 
+		ApfloatPoint b2 = new ApfloatPoint(p2.x, p2.y); 
+		tasks[threads-1] =  new ApfloatRenderTask( 
+				b1, b2, twidth,theight, iterations);
 	}
 	
 	// prepares tasks for re-render
 	private void updateTasks(){
-		double dx = Math.abs(p1.x-p2.x)/threads;
-		Point tsize = new Point((int)(size.x/threads), size.y);
+		Apfloat apthreads = new Apfloat(threads, precision);
+		Apfloat dx = ApfloatMath.abs(apthreads.divide(p1.x.subtract(p2.x)));
+		
+		int twidth = width/threads;
+		int theight = height/threads;
 		for(int t = 0; t < threads-1; t++){
-			tasks[t].updateBounds(new Point(p1.x + dx*t,p1.y), 
-					new Point(p1.x + dx*(t+1), p2.y));
+			Apfloat tt = new Apfloat(t, precision);
+			Apfloat ttt = new Apfloat(t+1, precision);
+			ApfloatPoint b1 = new ApfloatPoint(p1.x.add(dx.multiply(tt)), p1.y); 
+			ApfloatPoint b2 = new ApfloatPoint(p1.x.add(dx.multiply(ttt)), p2.y); 
+			tasks[t].updateBounds(b1, b2);
 		}
-		tasks[threads-1].updateBounds(new Point(p1.x + dx * (threads-1), p1.y), 
-				new Point(p2.x, p2.y));
-		xoffset = (int) tsize.x;
+		Apfloat tt = new Apfloat(threads - 1, precision);
+		ApfloatPoint b1 = new ApfloatPoint(p1.x.add(dx.multiply(tt)), p1.y); 
+		ApfloatPoint b2 = new ApfloatPoint(p2.x, p2.y); 
+		tasks[threads-1].updateBounds(b1, b2);
+		xoffset = twidth;
 	}
 	
 	public void render(){
@@ -87,7 +109,7 @@ public class ApfloatFractal implements Fractal{
 		valid = true;
 	}
 
-	private void copyImage(RenderTask task, int n) {
+	private void copyImage(ApfloatRenderTask task, int n) {
 		int[][] subImage = task.getImage();
 		int xo = n*xoffset;
 		for(int x = 0; x < subImage.length; x++){
@@ -102,12 +124,12 @@ public class ApfloatFractal implements Fractal{
 		return image;
 	}
 
-	public Point[] getBounds() {
-		return new Point[] {p1,p2};
+	public ApfloatPoint[] getBounds() {
+		return new ApfloatPoint[] {p1,p2};
 	}
 
-	@Override
 	public void run() {
 		render();
 	}
+	
 }
