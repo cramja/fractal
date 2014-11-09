@@ -33,7 +33,7 @@ public class Screen extends Canvas implements Runnable {
 			.getData();
 
 	//private PFractalController fc = new PFractalController();
-	private FractalController fc = new ApfloatFractalController();
+	private FractalController fc = new PFractalController();
 	
 	public Screen() {
 		Dimension dim = new Dimension(width, height);
