@@ -4,16 +4,20 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
-/**
- * Created by csehl on 11/11/14.
- */
 public class Worker implements Slave {
-    public int run(int x, int y) {
-        System.out.println("Worker: Servicing request.");
-        return x+y;
-    }
-
     private static final int DEFAULT_PORT = 1099;
+
+    public int run(int[][] array) {
+        System.out.println("Worker: Servicing request.");
+
+        int count = 0;
+        for(int i=0;i<array.length;i++) {
+            for(int j=0;j<array.length;j++) {
+                count += array[i][j];
+            }
+        }
+        return count;
+    }
 
     public static void main(String[] args) {
         try {
