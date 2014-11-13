@@ -1,41 +1,31 @@
 package fractals.parallel;
 import fractals.Direction;
 import fractals.FractalController;
+import fractals.remote.Master;
 
 public class PFractalController implements FractalController{
-	private PFractal fractal;
+    private Master workController;
 	private static final double zoomFactor = 0.05;
 	private static final int f_width = 50;
 	private static final int f_height = f_width;
+    private Point p1, p2;
 	
 	
 	public PFractalController(){
-		fractal = new PFractal(new Point(-2,-2), new Point(2,2), f_width, f_height);
+        workController = new Master();
+        setBounds(new Point(-2,-2), new Point(2,2));
+        workController.updateBounds(getBounds());
+        int numWorkers = workController.numWorkers();
+        workController.initWorkers(numWorkers,  50, 50);
 	}
 	
 	public int[][] getImage(){
-		if(h_thread != null && !h_thread.isAlive() && rendering && valid_hres)
-			return h_fractal.getImage();
-		return fractal.getImage();
-	}
-	
-	private boolean rendering = false;
-	private boolean valid_hres = false;
-	private PFractal h_fractal;
-	private Thread h_thread;
-	
-	public void renderHiRes(int width, int height){
-		System.out.println("hi_res");
-		if(rendering && !valid_hres && h_thread != null && h_thread.isAlive()) h_thread.interrupt();
-		h_fractal = new PFractal(fractal.getBounds()[0], fractal.getBounds()[1], width, height);
-		h_thread = new Thread(h_fractal);
-		h_thread.start();
-		rendering = true;
-		valid_hres = true;
+        workController.updateBounds(getBounds());
+		return workController.getImage(f_width, f_height);
 	}
 	
 	public void move(Direction direction){
-		Point[] pts = fractal.getBounds();
+		Point[] pts = getBounds();
 		double w = Math.abs(pts[0].x-pts[1].x)/50;
 		switch(direction){
 			case UP:
@@ -57,31 +47,37 @@ public class PFractalController implements FractalController{
 			default:
 				break;
 		}
-		fractal.setBounds(pts[0], pts[1]);
-		valid_hres = false;
+		setBounds(pts[0], pts[1]);
 	}
 	
 	public void increaseZoom() {
-		Point[] pts = fractal.getBounds();
+		Point[] pts = getBounds();
 		double w = Math.abs(pts[0].x-pts[1].x)/50;
 		pts[0].x += w;
 		pts[1].x -= w;
 		pts[0].y += w;
 		pts[1].y -= w;
-		fractal.setBounds(pts[0], pts[1]);
+        setBounds(pts[0], pts[1]);
 		System.out.println("bounds: " + pts[0] + " - " + pts[1]);
-		valid_hres = false;
 	}
 
 	public void decreaseZoom() {
-		Point[] pts = fractal.getBounds();
+		Point[] pts = getBounds();
 		double w = Math.abs(pts[0].x-pts[1].x)/50;
 		pts[0].x -= w;
 		pts[1].x += w;
 		pts[0].y -= w;
 		pts[1].y += w;
-		fractal.setBounds(pts[0], pts[1]);
+        setBounds(pts[0], pts[1]);
 		System.out.println("bounds: " + pts[0] + " - " + pts[1]);
-		valid_hres = false;
 	}
+
+    public Point[] getBounds() {
+        return new Point[] { p1, p2 };
+    }
+
+    public void setBounds(Point b1, Point b2) {
+        this.p1 = b1;
+        this.p2 = b2;
+    }
 }

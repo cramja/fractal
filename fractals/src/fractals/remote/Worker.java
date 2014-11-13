@@ -1,22 +1,27 @@
 package fractals.remote;
 
+import fractals.parallel.FractalCalculator;
+
+import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Worker implements Slave {
     private static final int DEFAULT_PORT = 1099;
+    private FractalCalculator fc;
 
-    public int run(int[][] array) {
+    public void init(double r1, double i1, double r2, double i2,
+                     int width, int height) throws RemoteException {
+        fc = new FractalCalculator(r1, i1, r2, i2, width, height);
+    }
+
+    public int[][] run(double r1, double i1, double r2, double i2,
+                   int width, int height) {
         System.out.println("Worker: Servicing request.");
-
-        int count = 0;
-        for(int i=0;i<array.length;i++) {
-            for(int j=0;j<array.length;j++) {
-                count += array[i][j];
-            }
-        }
-        return count;
+        System.out.println("Worker: running at [" + r1 + ", " + i1 + "],[" + r2 + ", " + i2 + "] over " + width + " x " + height);
+        fc.update(r1, i1, r2, i2, width, height);
+        return fc.getImage();
     }
 
     public static void main(String[] args) {

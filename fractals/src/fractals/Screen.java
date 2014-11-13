@@ -32,7 +32,6 @@ public class Screen extends Canvas implements Runnable {
 	private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer())
 			.getData();
 
-	//private PFractalController fc = new PFractalController();
 	private FractalController fc = new PFractalController();
 	
 	public Screen() {
@@ -143,7 +142,6 @@ public class Screen extends Canvas implements Runnable {
 	}
 
 	public static void main(String[] args) {
-
 		Screen screen = new Screen();
 		screen.frame.setResizable(false);
 		screen.frame.setTitle("Fractals");
