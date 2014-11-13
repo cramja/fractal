@@ -22,7 +22,7 @@ public class FractalCalculator {
     public FractalCalculator(double r1, double i1, double r2, double i2,
                              int width, int height) {
         update(r1, i1, r2, i2, width, height);
-        threads = 1;//Runtime.getRuntime().availableProcessors();
+        threads = Runtime.getRuntime().availableProcessors();
         e = Executors.newFixedThreadPool(threads);
 
         futures = new Future<?>[threads];
@@ -37,6 +37,7 @@ public class FractalCalculator {
         this.p2 = new Point(r2, i2);
         this.size = new Point(width, height);
         image = new int[width][height];
+        valid = false;
     }
 
     public void setBounds(Point b1, Point b2) {

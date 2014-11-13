@@ -2,6 +2,11 @@ package fractals.remote;
 
 import fractals.parallel.Point;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -10,20 +15,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Master {
-    private static final String[] hosts = {
-            "127.0.0.1",
-            "babbage.lab.knet.edu"
-    };
+    private static String[] hosts = new String[1];
     List<Slave> workers = new ArrayList<>();
     Point[] bounds;
     int totalWidth;
     int totalHeight;
-    double rStride;
     int widthStride;
 
     public Master() {
         try {
             // BOILERPLATE
+            // Read in hosts from workers.txt
+            try {
+                hosts = Files.readAllLines(new File("./workers.txt").toPath(), Charset.defaultCharset()).toArray(hosts);
+            } catch (IOException e) {
+                System.err.println("Unable to read workers file, using 127.0.0.1");
+                hosts = new String[]{ "127.0.0.1" };
+            }
             for (int i = 0; i < hosts.length; i++) {
                 // Ask a remote machine for their registry
                 Registry registry = LocateRegistry.getRegistry(hosts[i]);
@@ -78,7 +86,7 @@ public class Master {
     }
 
     public int[][] mergeImage(int[][][] parts) {
-        int[][] mergedImage = new int[parts[0].length][parts[0][0].length];
+        int[][] mergedImage = new int[totalWidth][totalHeight];
         for(int i=0;i<workers.size();i++) {
             System.arraycopy(parts[i], 0, mergedImage, widthStride*i, widthStride);
         }

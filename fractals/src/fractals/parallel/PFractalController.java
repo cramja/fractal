@@ -6,7 +6,7 @@ import fractals.remote.Master;
 public class PFractalController implements FractalController{
     private Master workController;
 	private static final double zoomFactor = 0.05;
-	private static final int f_width = 50;
+	private static final int f_width = 400;
 	private static final int f_height = f_width;
     private Point p1, p2;
 	
@@ -16,7 +16,7 @@ public class PFractalController implements FractalController{
         setBounds(new Point(-2,-2), new Point(2,2));
         workController.updateBounds(getBounds());
         int numWorkers = workController.numWorkers();
-        workController.initWorkers(numWorkers,  50, 50);
+        workController.initWorkers(numWorkers,  f_width, f_height);
 	}
 	
 	public int[][] getImage(){
@@ -29,20 +29,20 @@ public class PFractalController implements FractalController{
 		double w = Math.abs(pts[0].x-pts[1].x)/50;
 		switch(direction){
 			case UP:
-				pts[0].y += w;
-				pts[1].y += w;
+                pts[0].y -= w;
+                pts[1].y -= w;
 				break;
 			case DOWN:
-				pts[0].y -= w;
-				pts[1].y -= w;
+                pts[0].y += w;
+                pts[1].y += w;
 				break;
 			case LEFT:
-				pts[0].x += w;
-				pts[1].x += w;
+                pts[0].x -= w;
+                pts[1].x -= w;
 				break;
 			case RIGHT:
-				pts[0].x -= w;
-				pts[1].x -= w;
+                pts[0].x += w;
+                pts[1].x += w;
 				break;
 			default:
 				break;
@@ -58,7 +58,6 @@ public class PFractalController implements FractalController{
 		pts[0].y += w;
 		pts[1].y -= w;
         setBounds(pts[0], pts[1]);
-		System.out.println("bounds: " + pts[0] + " - " + pts[1]);
 	}
 
 	public void decreaseZoom() {
@@ -69,7 +68,6 @@ public class PFractalController implements FractalController{
 		pts[0].y -= w;
 		pts[1].y += w;
         setBounds(pts[0], pts[1]);
-		System.out.println("bounds: " + pts[0] + " - " + pts[1]);
 	}
 
     public Point[] getBounds() {

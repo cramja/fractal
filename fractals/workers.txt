@@ -1,0 +1,4 @@
+babbage.lab.knet.edu
+turing.lab.knet.edu
+kernighan.lab.knet.edu
+lovelace.lab.knet.edu
