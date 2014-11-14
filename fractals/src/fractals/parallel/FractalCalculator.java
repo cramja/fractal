@@ -12,7 +12,7 @@ public class FractalCalculator {
     protected RenderTask[] tasks;
     protected Future<?>[] futures;
 
-    private static final int iterations = 50;
+    private static final int iterations = 50; // kept small for speed
     private Point p1, p2, size;
     private int[][] image;
     private int xoffset = 0;

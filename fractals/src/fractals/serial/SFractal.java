@@ -2,6 +2,12 @@ package fractals.serial;
 
 import fractals.Fractal;
 
+/**
+ * This class exists only for time-testing purposes
+ * Times will be inherently faster on single core
+ * machines because there is no executor overhead
+ *
+ */
 public class SFractal implements Fractal{
 	protected double xcenter= 0;
 	protected double ycenter = 0;
