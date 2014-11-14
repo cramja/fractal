@@ -6,7 +6,7 @@ import fractals.remote.Master;
 public class PFractalController implements FractalController{
     private Master workController;
 	private static final double zoomFactor = 0.05;
-	private static final int f_width = 400;
+	private static final int f_width = 200;
 	private static final int f_height = f_width;
     private Point p1, p2;
 	

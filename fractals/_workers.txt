@@ -1,0 +1,5 @@
+babbage.lab.knet.edu
+turing.lab.knet.edu
+kernighan.lab.knet.edu
+lovelace.lab.knet.edu
+127.0.0.1
