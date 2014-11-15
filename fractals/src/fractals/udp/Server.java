@@ -36,7 +36,7 @@ public class Server implements Runnable {
 			System.out.println("Failed to create Server");
 			System.exit(-1);
 		}
-		for (;;) { // Run forever, receiving and echoing datagrams
+		while(true) { // Run forever, receiving and echoing datagrams
 			try {
 				mSocket.receive(mPacket);
 			} catch (IOException e) {

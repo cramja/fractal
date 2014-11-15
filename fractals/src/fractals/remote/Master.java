@@ -1,26 +1,30 @@
 package fractals.remote;
 
-import fractals.parallel.Point;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import fractals.parallel.Point;
 
 public class Master {
     private static String[] hosts = new String[1];
     List<Slave> workers = new ArrayList<>();
+    List<SlaveCaller> callers = new ArrayList<>();
     Point[] bounds;
     int totalWidth;
     int totalHeight;
     int widthStride;
+    ExecutorService eservice = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public Master() {
         try {
@@ -62,17 +66,17 @@ public class Master {
             totalWidth = width;
             totalHeight = height;
             widthStride = width/workers.size();
-
-            for(int i=0; i<workers.size(); i++) {
-                workers.get(i).init(rStride()*i + bounds[0].x, bounds[0].y,
-                        rStride()*i + rStride() + bounds[0].x, bounds[1].y,
-                        widthStride, totalHeight);
+            
+            for(int i=0; i<workers.size(); i++) { // set the parameters
+               if(callers.size() <= i){
+            	   callers.add(new SlaveCaller(workers.get(i)));
+               }
+               callers.get(i).setParams(rStride()*i + bounds[0].x, bounds[0].y,
+                       rStride()*i + rStride() + bounds[0].x, bounds[1].y,
+                       widthStride, totalHeight);
             }
         } catch(IndexOutOfBoundsException e) {
             System.err.println("More workers requested than available");
-            e.printStackTrace();
-        } catch(RemoteException e) {
-            System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
         }
     }
@@ -102,18 +106,56 @@ public class Master {
             widthStride = width/workers.size();
             int[][][] parts = new int[workers.size()][widthStride][totalHeight];
 
+            ArrayList<Future> futures = new ArrayList<Future>(callers.size());
+            
             // Give each worker a section of the fractal to compute
             // by dividing the image up into vertical strips
             for(int i=0; i<workers.size(); i++) {
-                parts[i] = workers.get(i).run(rStride()*i + bounds[0].x, bounds[0].y,
-                                              rStride()*i + rStride() + bounds[0].x, bounds[1].y,
-                                              widthStride, totalHeight);
+            	callers.get(i).setParams(rStride()*i + bounds[0].x, bounds[0].y,
+                        rStride()*i + rStride() + bounds[0].x, bounds[1].y,
+                        widthStride, totalHeight);
+            	futures.add(eservice.submit(callers.get(i)));
             }
+            
+            for(int i=0; i<workers.size(); i++)
+            	futures.get(i).get();
+
             return mergeImage(parts);
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
             return null;
         }
+    }
+    
+    class SlaveCaller implements Runnable {
+    	
+    	Slave slave;
+    	double x1,x2,y1,y2;
+    	int h,w;
+
+		public SlaveCaller(Slave s) {
+			slave = s;
+		}
+
+		@Override
+		public void run() {
+			try {
+				//slave.init(x1,y1, x2, y2, w, h); // doesn't need to be init'ed i think
+				slave.run(x1,y1, x2, y2, w, h);
+			} catch (RemoteException e) {
+				System.out.println("SlaveCaller failed during remote call: " + e.getCause());
+			}
+		}
+		
+		public void setParams(double x1, double y1, double x2, double y2, int w, int h){
+			this.x1=x1;
+			this.x2=x2;
+			this.y1=y1;
+			this.y2=y2;
+			this.w = w;
+			this.h = h;
+		}
+    	
     }
 }
